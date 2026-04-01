@@ -1,0 +1,68 @@
+[
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/main.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/main.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/main.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/config.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/config.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/config.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/config.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/livox_receiver.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/livox_receiver.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/livox_receiver.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/livox_receiver.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/background.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/background.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/background.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/background.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/debug_view.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/debug_view.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/debug_view.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/debug_view.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/point_processing.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/point_processing.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/point_processing.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/point_processing.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/tracker.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/tracker.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/tracker.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/tracker.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/zones.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/zones.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/zones.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/zones.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/net.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/net.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/net.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/net.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/tcp_json_publisher.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/tcp_json_publisher.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/tcp_json_publisher.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/tcp_json_publisher.cpp.o"
+},
+{
+  "directory": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/build-local",
+  "command": "/usr/bin/c++ -D_USE_MATH_DEFINES -I/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src -std=gnu++17 -o CMakeFiles/livox_tracking_service.dir/src/osc_publisher.cpp.o -c /Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/osc_publisher.cpp",
+  "file": "/Users/giacomo/Desktop/TestAi/livoxTrackingWin/src/osc_publisher.cpp",
+  "output": "CMakeFiles/livox_tracking_service.dir/src/osc_publisher.cpp.o"
+}
+]
