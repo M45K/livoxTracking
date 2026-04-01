@@ -66,5 +66,6 @@ if(USE_LIVOX)
 endif()
 
 if(WIN32)
+  target_compile_definitions(livox_tracking_service PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
   target_link_libraries(livox_tracking_service PRIVATE ws2_32)
 endif()

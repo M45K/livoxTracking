@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
     }
     DebugViewRenderer debug_view(config);
 
-    const auto tick = std::chrono::milliseconds(std::max(1, 1000 / config.tracking.processing_hz));
+    const auto tick = std::chrono::milliseconds((std::max)(1, 1000 / config.tracking.processing_hz));
 
     if (calibrate_background) {
       BackgroundAccumulator background_accumulator(config.background.voxel_leaf);
