@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -18,6 +19,65 @@ enum class Section {
   kOsc,
   kRoi,
 };
+
+struct LidarPose {
+  float roll_deg = 0.0f;
+  float pitch_deg = 0.0f;
+  float yaw_deg = 0.0f;
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+};
+
+enum LidarPoseField : std::uint8_t {
+  kRoll = 1u << 0,
+  kPitch = 1u << 1,
+  kYaw = 1u << 2,
+  kX = 1u << 3,
+  kY = 1u << 4,
+  kZ = 1u << 5,
+  kAllPoseFields = kRoll | kPitch | kYaw | kX | kY | kZ,
+};
+
+constexpr double kPi = 3.14159265358979323846;
+
+double DegreesToRadians(float degrees) {
+  return static_cast<double>(degrees) * kPi / 180.0;
+}
+
+Mat4f BuildLivoxTransform(const LidarPose& pose) {
+  const double roll = DegreesToRadians(pose.roll_deg);
+  const double pitch = DegreesToRadians(pose.pitch_deg);
+  const double yaw = DegreesToRadians(pose.yaw_deg);
+
+  const double cx = std::cos(roll);
+  const double sx = std::sin(roll);
+  const double cy = std::cos(pitch);
+  const double sy = std::sin(pitch);
+  const double cz = std::cos(yaw);
+  const double sz = std::sin(yaw);
+
+  Mat4f matrix;
+  matrix.data = {
+      static_cast<float>(cz * cy),
+      static_cast<float>(cz * sy * sx - sz * cx),
+      static_cast<float>(cz * sy * cx + sz * sx),
+      pose.x,
+      static_cast<float>(sz * cy),
+      static_cast<float>(sz * sy * sx + cz * cx),
+      static_cast<float>(sz * sy * cx - cz * sx),
+      pose.y,
+      static_cast<float>(-sy),
+      static_cast<float>(cy * sx),
+      static_cast<float>(cy * cx),
+      pose.z,
+      0.0f,
+      0.0f,
+      0.0f,
+      1.0f,
+  };
+  return matrix;
+}
 
 std::string Trim(const std::string& input) {
   const char* whitespace = " \t\r\n";
@@ -235,6 +295,43 @@ void AssignLidarKey(LidarConfig& config, const std::string& key, const std::stri
   }
 }
 
+bool AssignLidarPoseKey(LidarPose& pose,
+                        std::uint8_t& pose_mask,
+                        const std::string& key,
+                        const std::string& value) {
+  if (key == "roll") {
+    pose.roll_deg = std::stof(value);
+    pose_mask |= kRoll;
+    return true;
+  }
+  if (key == "pitch") {
+    pose.pitch_deg = std::stof(value);
+    pose_mask |= kPitch;
+    return true;
+  }
+  if (key == "yaw") {
+    pose.yaw_deg = std::stof(value);
+    pose_mask |= kYaw;
+    return true;
+  }
+  if (key == "x") {
+    pose.x = std::stof(value);
+    pose_mask |= kX;
+    return true;
+  }
+  if (key == "y") {
+    pose.y = std::stof(value);
+    pose_mask |= kY;
+    return true;
+  }
+  if (key == "z") {
+    pose.z = std::stof(value);
+    pose_mask |= kZ;
+    return true;
+  }
+  return false;
+}
+
 void ParseKeyValue(const std::string& line, std::string& key, std::string& value) {
   const auto colon = line.find(':');
   if (colon == std::string::npos) {
@@ -256,6 +353,9 @@ AppConfig load_config(const std::string& path) {
   Section section = Section::kRoot;
   bool has_active_lidar = false;
   LidarConfig current_lidar;
+  LidarPose current_lidar_pose;
+  std::uint8_t current_lidar_pose_mask = 0;
+  bool current_lidar_has_matrix = false;
   bool has_active_zone = false;
   ZoneConfig current_zone;
   std::string line;
@@ -264,11 +364,23 @@ AppConfig load_config(const std::string& path) {
     if (!has_active_lidar) {
       return;
     }
+    if (current_lidar_has_matrix && current_lidar_pose_mask != 0) {
+      throw std::runtime_error("Lidar entry cannot define both T and roll/pitch/yaw/x/y/z");
+    }
+    if (current_lidar_pose_mask != 0) {
+      if (current_lidar_pose_mask != kAllPoseFields) {
+        throw std::runtime_error("Lidar entry using roll/pitch/yaw/x/y/z must define all six values");
+      }
+      current_lidar.T = BuildLivoxTransform(current_lidar_pose);
+    }
     if (current_lidar.name.empty()) {
       current_lidar.name = current_lidar.ip.empty() ? current_lidar.code : current_lidar.ip;
     }
     config.lidars.push_back(current_lidar);
     current_lidar = LidarConfig{};
+    current_lidar_pose = LidarPose{};
+    current_lidar_pose_mask = 0;
+    current_lidar_has_matrix = false;
     has_active_lidar = false;
   };
 
@@ -354,12 +466,16 @@ AppConfig load_config(const std::string& path) {
 
       if (trimmed.rfind("T:", 0) == 0) {
         current_lidar.T = ParseMatrix4(file, trimmed.substr(2));
+        current_lidar_has_matrix = true;
         continue;
       }
 
       std::string key;
       std::string value;
       ParseKeyValue(trimmed, key, value);
+      if (AssignLidarPoseKey(current_lidar_pose, current_lidar_pose_mask, key, value)) {
+        continue;
+      }
       AssignLidarKey(current_lidar, key, value);
       continue;
     }
