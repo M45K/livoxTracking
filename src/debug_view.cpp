@@ -11,6 +11,29 @@
 
 namespace {
 
+struct ViewProjection {
+  double scale = 1.0;
+  double x_offset = 0.0;
+  double y_offset = 0.0;
+  double world_width = 0.0;
+  double world_height = 0.0;
+};
+
+ViewProjection BuildProjection(const DebugViewConfig& cfg) {
+  const double x_span = std::max(1e-6, static_cast<double>(cfg.x_max - cfg.x_min));
+  const double y_span = std::max(1e-6, static_cast<double>(cfg.y_max - cfg.y_min));
+  const double scale = std::min(cfg.width / x_span, cfg.height / y_span);
+  const double world_width = x_span * scale;
+  const double world_height = y_span * scale;
+  return ViewProjection{
+      scale,
+      (cfg.width - world_width) * 0.5,
+      (cfg.height - world_height) * 0.5,
+      world_width,
+      world_height,
+  };
+}
+
 std::string EscapeHtml(const std::string& input) {
   std::string output;
   output.reserve(input.size());
@@ -27,14 +50,16 @@ std::string EscapeHtml(const std::string& input) {
   return output;
 }
 
-double MapX(const DebugViewConfig& cfg, float x) {
-  const double normalized = (x - cfg.x_min) / static_cast<double>(cfg.x_max - cfg.x_min);
-  return normalized * cfg.width;
+double MapX(const DebugViewConfig& cfg, const ViewProjection& projection, float x) {
+  return projection.x_offset + (x - cfg.x_min) * projection.scale;
 }
 
-double MapY(const DebugViewConfig& cfg, float y) {
-  const double normalized = (y - cfg.y_min) / static_cast<double>(cfg.y_max - cfg.y_min);
-  return cfg.height - normalized * cfg.height;
+double MapY(const DebugViewConfig& cfg, const ViewProjection& projection, float y) {
+  return cfg.height - projection.y_offset - (y - cfg.y_min) * projection.scale;
+}
+
+bool IsInsideView(const DebugViewConfig& cfg, float x, float y) {
+  return x >= cfg.x_min && x <= cfg.x_max && y >= cfg.y_min && y <= cfg.y_max;
 }
 
 std::string TrackColor(std::uint64_t id) {
@@ -60,20 +85,22 @@ void WriteAtomically(const std::string& path, const std::string& content) {
   std::filesystem::rename(temp_path, output_path);
 }
 
-std::string BuildGridSvg(const DebugViewConfig& cfg) {
+std::string BuildGridSvg(const DebugViewConfig& cfg, const ViewProjection& projection) {
   std::ostringstream svg;
   svg << "<g stroke=\"#273043\" stroke-width=\"1\">";
   const int x_start = static_cast<int>(std::floor(cfg.x_min));
   const int x_end = static_cast<int>(std::ceil(cfg.x_max));
   for (int x = x_start; x <= x_end; ++x) {
-    const double sx = MapX(cfg, static_cast<float>(x));
-    svg << "<line x1=\"" << sx << "\" y1=\"0\" x2=\"" << sx << "\" y2=\"" << cfg.height << "\" />";
+    const double sx = MapX(cfg, projection, static_cast<float>(x));
+    svg << "<line x1=\"" << sx << "\" y1=\"" << projection.y_offset
+        << "\" x2=\"" << sx << "\" y2=\"" << (projection.y_offset + projection.world_height) << "\" />";
   }
   const int y_start = static_cast<int>(std::floor(cfg.y_min));
   const int y_end = static_cast<int>(std::ceil(cfg.y_max));
   for (int y = y_start; y <= y_end; ++y) {
-    const double sy = MapY(cfg, static_cast<float>(y));
-    svg << "<line x1=\"0\" y1=\"" << sy << "\" x2=\"" << cfg.width << "\" y2=\"" << sy << "\" />";
+    const double sy = MapY(cfg, projection, static_cast<float>(y));
+    svg << "<line x1=\"" << projection.x_offset << "\" y1=\"" << sy
+        << "\" x2=\"" << (projection.x_offset + projection.world_width) << "\" y2=\"" << sy << "\" />";
   }
   svg << "</g>";
   return svg.str();
@@ -102,6 +129,7 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
   last_render_ms_ = timestamp_ms;
 
   const DebugViewConfig& view = config_.debug_view;
+  const ViewProjection projection = BuildProjection(view);
   std::ostringstream html;
   html << std::fixed << std::setprecision(2);
   html << "<!doctype html><html><head><meta charset=\"utf-8\">"
@@ -132,13 +160,21 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
   html << "<section class=\"panel\"><div class=\"head\"><div class=\"title\">Room Top View</div>"
        << "<div class=\"badge\">auto refresh</div></div>";
   html << "<svg viewBox=\"0 0 " << view.width << ' ' << view.height << "\" xmlns=\"http://www.w3.org/2000/svg\">";
-  html << BuildGridSvg(view);
+  html << "<defs><clipPath id=\"world-clip\">"
+       << "<rect x=\"" << projection.x_offset << "\" y=\"" << projection.y_offset
+       << "\" width=\"" << projection.world_width << "\" height=\"" << projection.world_height << "\"/>"
+       << "</clipPath></defs>";
+  html << "<rect x=\"" << projection.x_offset << "\" y=\"" << projection.y_offset
+       << "\" width=\"" << projection.world_width << "\" height=\"" << projection.world_height
+       << "\" fill=\"rgba(12,18,36,.98)\" stroke=\"rgba(138,160,191,.16)\" stroke-width=\"1.5\" rx=\"12\"/>";
+  html << BuildGridSvg(view, projection);
+  html << "<g clip-path=\"url(#world-clip)\">";
 
   for (const auto& zone : config_.zones) {
-    const double x = MapX(view, zone.x_min);
-    const double y = MapY(view, zone.y_max);
-    const double w = MapX(view, zone.x_max) - x;
-    const double h = MapY(view, zone.y_min) - y;
+    const double x = MapX(view, projection, zone.x_min);
+    const double y = MapY(view, projection, zone.y_max);
+    const double w = MapX(view, projection, zone.x_max) - x;
+    const double h = MapY(view, projection, zone.y_min) - y;
     html << "<rect x=\"" << x << "\" y=\"" << y << "\" width=\"" << w << "\" height=\"" << h
          << "\" fill=\"rgba(45,212,191,.08)\" stroke=\"rgba(45,212,191,.65)\" stroke-dasharray=\"8 6\"/>";
     html << "<text x=\"" << (x + 8.0) << "\" y=\"" << (y + 18.0)
@@ -149,18 +185,18 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
   html << "<g fill=\"#8fb3ff\" fill-opacity=\"0.55\">";
   for (std::size_t i = 0; i < points.size(); i += step) {
     const auto& point = points[i];
-    const double x = MapX(view, point.position.x);
-    const double y = MapY(view, point.position.y);
-    if (x < 0.0 || x > view.width || y < 0.0 || y > view.height) {
+    if (!IsInsideView(view, point.position.x, point.position.y)) {
       continue;
     }
+    const double x = MapX(view, projection, point.position.x);
+    const double y = MapY(view, projection, point.position.y);
     html << "<circle cx=\"" << x << "\" cy=\"" << y << "\" r=\"1.6\"/>";
   }
   html << "</g>";
 
   for (const auto& lidar : config_.lidars) {
-    const double x = MapX(view, lidar.T.data[3]);
-    const double y = MapY(view, lidar.T.data[7]);
+    const double x = MapX(view, projection, lidar.T.data[3]);
+    const double y = MapY(view, projection, lidar.T.data[7]);
     html << "<g>";
     html << "<circle cx=\"" << x << "\" cy=\"" << y << "\" r=\"8\" fill=\"#f59e0b\" stroke=\"#fff4d6\" stroke-width=\"2\"/>";
     html << "<text x=\"" << (x + 12.0) << "\" y=\"" << (y - 10.0)
@@ -169,10 +205,10 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
   }
 
   for (const auto& detection : detections) {
-    const double x = MapX(view, detection.min_bounds.x);
-    const double y = MapY(view, detection.max_bounds.y);
-    const double w = MapX(view, detection.max_bounds.x) - x;
-    const double h = MapY(view, detection.min_bounds.y) - y;
+    const double x = MapX(view, projection, detection.min_bounds.x);
+    const double y = MapY(view, projection, detection.max_bounds.y);
+    const double w = MapX(view, projection, detection.max_bounds.x) - x;
+    const double h = MapY(view, projection, detection.min_bounds.y) - y;
     html << "<rect x=\"" << x << "\" y=\"" << y << "\" width=\"" << std::max(4.0, w)
          << "\" height=\"" << std::max(4.0, h)
          << "\" fill=\"rgba(56,189,248,.10)\" stroke=\"#38bdf8\" stroke-width=\"2\"/>";
@@ -180,10 +216,10 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
 
   for (const auto& person : people) {
     const std::string color = TrackColor(person.id);
-    const double x = MapX(view, person.position.x);
-    const double y = MapY(view, person.position.y);
-    const double vx = MapX(view, person.position.x + person.velocity.x * 0.4f);
-    const double vy = MapY(view, person.position.y + person.velocity.y * 0.4f);
+    const double x = MapX(view, projection, person.position.x);
+    const double y = MapY(view, projection, person.position.y);
+    const double vx = MapX(view, projection, person.position.x + person.velocity.x * 0.4f);
+    const double vy = MapY(view, projection, person.position.y + person.velocity.y * 0.4f);
     html << "<g>";
     html << "<line x1=\"" << x << "\" y1=\"" << y << "\" x2=\"" << vx << "\" y2=\"" << vy
          << "\" stroke=\"" << color << "\" stroke-width=\"3\" stroke-linecap=\"round\"/>";
@@ -194,6 +230,7 @@ void DebugViewRenderer::Render(std::uint64_t timestamp_ms,
     html << "</g>";
   }
 
+  html << "</g>";
   html << "</svg>";
   html << "<div class=\"legend\">"
        << "<span><span class=\"dot\" style=\"background:#8fb3ff\"></span>dynamic points</span>"
