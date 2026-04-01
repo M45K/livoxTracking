@@ -45,9 +45,9 @@ debug_view:
   width: 1280
   height: 900
   x_min: -2.0
-  x_max: 4.0
+  x_max: 20.0
   y_min: -2.0
-  y_max: 4.0
+  y_max: 10.0
   max_points: 4000
 
 tcp:
