@@ -1,0 +1,91 @@
+# App-level tracking config.
+# The Livox SDK2 network config stays in data/mid360_sdk_config.json.
+
+sdk_config: data/mid360_sdk_config.json
+processing_hz: 20
+voxel_leaf: 0.12
+detection_z_min: 0.20
+detection_z_max: 2.20
+max_range_m: 25.0
+cluster_tolerance: 0.45
+min_cluster_points: 10
+person_min_height: 0.45
+person_max_height: 2.40
+person_max_width: 1.20
+person_max_depth: 1.20
+track_match_distance: 0.90
+track_timeout_ms: 1200
+verbose_logs: true
+
+roi:
+  enabled: false
+  x_min: -2.0
+  x_max: 4.0
+  y_min: -2.0
+  y_max: 4.0
+
+background:
+  enabled: false
+  file: data/background.vox
+  capture_seconds: 15
+  min_frame_hits: 5
+  voxel_leaf: 0.12
+
+zones:
+  # Example:
+  # - name: entrance
+  #   x_min: -0.5
+  #   x_max: 0.5
+  #   y_min: -2.0
+  #   y_max: -1.0
+
+debug_view:
+  enabled: true
+  file: debug/feedback.html
+  width: 1280
+  height: 900
+  x_min: -2.0
+  x_max: 4.0
+  y_min: -2.0
+  y_max: 4.0
+  max_points: 4000
+
+tcp:
+  enabled: true
+  bind_ip: 0.0.0.0
+  port: 9100
+
+osc:
+  enabled: false
+  target_ip: 127.0.0.1
+  port: 9000
+  address: /livox/person
+
+lidars:
+  - name: mid360_1
+    ip: 169.254.37.136
+    T: [1.000000, 0.000000, 0.000000, 0.000000,
+        0.000000,-1.000000, 0.000000,-0.043100,
+        0.000000, 0.000000,-1.000000, 0.300000,
+        0.000000, 0.000000, 0.000000, 1.000000]
+
+  - name: mid360_2
+    ip: 169.254.37.110
+    T: [-0.019000,-0.999800, 0.000000, 1.740900,
+        -0.999800, 0.019000, 0.000000, 0.563900,
+         0.000000, 0.000000,-1.000000, 0.300000,
+         0.000000, 0.000000, 0.000000, 1.000000]
+
+  - name: mid360_3
+    ip: 169.254.37.118
+    T: [-0.052000,-0.999000, 0.000000, 0.836900,
+        -0.999000, 0.052000, 0.000000, 0.759700,
+         0.000000, 0.000000,-1.000000, 0.300000,
+         0.000000, 0.000000, 0.000000, 1.000000]
+
+  - name: mid360_4
+    ip: 169.254.37.124
+    T: [0.000000, 1.000000, 0.000000, 1.300000,
+        1.000000, 0.000000, 0.000000,-0.056500,
+        0.000000, 0.000000,-1.000000, 0.300000,
+        0.000000, 0.000000, 0.000000, 1.000000]
